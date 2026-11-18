@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=600,initial-scale=1.0"/>
+  <title>多模态虚假新闻检测</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome/css/font-awesome.min.css">
+  <style>
+    html, body { width:700px; min-width:700px; max-width:700px; height:700px; min-height:700px; max-height:700px; margin:0; padding:0; overflow:hidden;}
+    body { font-family: "Segoe UI", sans-serif; background: #f5f5f5; }  
+    .header { display: flex; align-items: center; background: white; padding: 10px 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); margin-bottom: 30px; margin-top: 40px;}
+    .header img { height: 40px; margin-right: 10px; }
+    .header span { font-size: 28px; color: #888; font-weight: bold; }
+    .login-card { background: white; width: 520px; border-radius: 14px; box-shadow: 0 4px 16px rgba(0,0,0,0.15); padding: 38px 38px 24px 38px; display: flex; flex-direction: column; align-items: center; margin-bottom: 12px; animation: fadeIn .8s;}
+    @keyframes fadeIn { from{opacity:0;transform:translateY(40px);} to{opacity:1;transform:translateY(0);} }
+    .login-title { font-size: 32px; font-weight: bold; color: #555; margin-bottom: 8px; text-align: center;}
+    .login-desc { color: #888; font-size: 16px; margin-bottom: 28px; text-align: center;}
+    .login-form { width: 100%; display: flex; flex-direction: column; gap: 20px;}
+    .login-label { color: #888; font-size: 15px; margin-bottom: 6px; font-weight: bold;}
+    .login-input-row { position: relative;}
+    .login-input { width: 100%; padding: 11px 40px 11px 12px; border-radius: 7px; border: 1px solid #dbe3d3; font-size: 16px; background: #fafafa; box-sizing: border-box; outline: none; transition: border 0.2s;}
+    .login-input:focus { border: 1.5px solid #b6c8a8; background: #fff;}
+    .login-eye { position: absolute; right: 10px; top: 11px; cursor: pointer; font-size: 18px; color: #bbb;}
+    .login-aux-row { display: flex; justify-content: space-between; align-items: center; margin-top: -8px; margin-bottom: 6px;}
+    .remember-me { font-size: 14px; color: #888; cursor: pointer; user-select: none; display: flex; align-items: center; gap: 4px;}
+    .login-checkbox { width: 16px; height: 16px; accent-color: #cfd8c2; vertical-align: middle;}
+    .login-form .forgot { font-size: 14px; color: #bbb; text-decoration: none; pointer-events: none; cursor: default;}
+    .login-btn { width: 100%; padding: 12px 0; border-radius: 22px; border: none; font-size: 18px; background: #cfd8c2; color: white; margin-top: 8px; cursor: pointer; transition: background 0.2s; font-weight: 600; letter-spacing: 1px; box-shadow: 0 2px 8px rgba(207,216,194,0.1);}
+    .login-btn:active { background: #b6c8a8;}
+    .login-register-row { margin-top: 15px; font-size: 14px; color: #888; text-align: center;}
+    .login-register-row .register { color: #8fa982; cursor: pointer; text-decoration: underline;}
+    .login-error { color: #d9534f; font-size: 16px; margin-bottom: 8px; display: none; text-align: center;}
+    .card { background: white; border-radius: 12px; padding: 30px; width: 600px; text-align: center; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);}
+    .title { font-size: 24px; margin-bottom: 30px; color: #666;}
+    .models { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px;}
+    .model { border: 2px solid #cfd8c2; padding: 20px; border-radius: 10px; color: #999; cursor: pointer; transition: 0.3s;}
+    .model:hover, .model.selected { background: #d7e1cd; color: #555; border-color: #b6c8a8;}
+    .navigation { display: flex; justify-content: space-between; align-items: center;}
+    .back, .continue { padding: 10px 20px; font-size: 16px; border-radius: 20px; border: none; cursor: pointer; display: flex; align-items: center; transition: 0.3s;}
+    .back { background: none; color: #999; text-decoration: underline;}
+    .continue { background: #cfd8c2; color: white; opacity: 0.5; pointer-events: none;}
+    .continue.enabled { opacity: 1; pointer-events: auto;}
+    .continue:hover:enabled, .continue.enabled:hover { background: #b6c8a8;}
+    .pagination { margin: 20px 0;}
+    .dot { height: 10px; width: 10px; margin: 0 5px; background-color: #bbb; border-radius: 50%; display: inline-block;}
+    .dot.active { background-color: #888;}
+    .input-card { background: white; border-radius: 12px; padding: 30px; width: 600px; text-align: center; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1); display: none; flex-direction: column; align-items: center;}
+    .input-title { display: flex; align-items: center; justify-content: flex-start; gap: 16px; margin-bottom: 15px;}
+    .input-title img { height: 56px;}
+    .input-title span { font-size: 36px; color: #888; font-weight: bold; letter-spacing: 2px;}
+    .input-label { font-size: 20px; text-align: left; margin-bottom: 6px; color: #666; margin-top: 12px;}
+    .input-textarea { width: 100%; min-height: 95px; border-radius: 10px; border: 1px solid #cfd8c2; resize: vertical; font-size: 16px; padding: 10px; margin-bottom: 16px; box-sizing: border-box;}
+    .input-actions { display: flex; flex-direction: column; align-items: center; width: 100%; margin-top: 12px; gap: 10px;}
+    .input-actions .clear { min-width: 100px; max-width: 180px; padding: 6px 18px; border-radius: 16px; border: none; background: #f5f5f5; color: #888; font-size: 14px; cursor: pointer; text-align: center; transition: background 0.2s; margin: 0 auto; display: block;}
+    .input-actions .clear:hover { background: #e0e0e0;}
+    .input-actions-row { display: flex; justify-content: space-between; width: 100%; margin-top: 5px;}
+    .input-actions .back, .input-actions .continue { margin: 0;}
+    .input-actions .continue { background: #cfd8c2; color: white; opacity: 0.5; pointer-events: none;}
+    .input-actions .continue.enabled { opacity: 1; pointer-events: auto;}
+    .input-actions .continue:hover:enabled, .input-actions .continue.enabled:hover { background: #b6c8a8;}
+    .input-pagination { margin: 18px 0 0 0; text-align: center;}
+    .input-pagination .dot { height: 10px; width: 10px; margin: 0 5px; background-color: #bbb; border-radius: 50%; display: inline-block;}
+    .input-pagination .dot.active { background-color: #888;}
+    .modal-overlay { display: none; position: fixed; z-index: 999; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.25); align-items: center; justify-content: center;}
+    .modal { background: #fff; border-radius: 16px; width: 420px; max-width: 90vw; padding: 30px 25px 20px 25px; box-shadow: 0 8px 32px rgba(0,0,0,0.16); text-align: left; position: relative; display: flex; flex-direction: column; gap: 18px;}
+    .modal-header { font-size: 24px; color: #666; font-weight: bold; letter-spacing: 1.5px; margin-bottom: 10px; display: flex; align-items: center; gap: 10px;}
+    .modal-content label { font-weight: bold; color: #888; margin-right: 6px;}
+    .modal-content { font-size: 18px; margin-bottom: 10px; word-break: break-all;}
+    .modal-actions { margin-top: 10px; display: flex; justify-content: flex-end; gap: 12px;}
+    .modal-actions button { font-size: 16px; border: none; border-radius: 8px; padding: 8px 20px; cursor: pointer; background: #cfd8c2; color: #fff; transition: background 0.2s;}
+    .modal-actions button:hover { background: #b6c8a8;}
+    .modal-close { position: absolute; top: 12px; right: 18px; font-size: 22px; color: #aaa; background: none; border: none; cursor: pointer; font-weight: bold;}
+    .register-modal-overlay { display: none; position: fixed; z-index: 1001; left: 0; top: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.2); align-items: center; justify-content: center;}
+    .register-modal { background: #fff; border-radius: 16px; width: 390px; max-width: 95vw; padding: 26px 28px 20px 28px; box-shadow: 0 8px 32px rgba(0,0,0,0.16); text-align: center; position: relative; display: flex; flex-direction: column; gap: 15px; animation: fadeIn .6s;}
+    .register-modal-title { font-size: 22px; font-weight: bold; color: #666; margin-bottom: 12px;}
+    .register-modal-label { color: #888; font-size: 15px; font-weight: bold; margin-bottom: 3px; text-align: left;}
+    .register-modal-input { width: 100%; padding: 9px 12px; border-radius: 7px; border: 1px solid #dbe3d3; font-size: 16px; background: #fafafa; box-sizing: border-box; outline: none; transition: border 0.2s; margin-bottom: 9px;}
+    .register-modal-input:focus { border: 1.5px solid #b6c8a8; background: #fff;}
+    .register-modal-btn-row { text-align: right; margin-top: 6px;}
+    .register-modal-btn { font-size: 16px; border: none; border-radius: 8px; padding: 8px 18px; cursor: pointer; background: #cfd8c2; color: #fff; transition: background 0.2s; margin-left: 12px;}
+    .register-modal-btn:hover { background: #b6c8a8;}
+    .register-modal-close { position: absolute; top: 12px; right: 18px; font-size: 22px; color: #aaa; background: none; border: none; cursor: pointer; font-weight: bold;}
+    .register-modal-error { color: #d9534f; font-size: 15px; min-height: 20px; margin-bottom: 1px; text-align: left;}
+    .register-modal-success { color: #5cb85c; font-size: 15px; min-height: 20px; margin-bottom: 1px; text-align: left;}
+    /* 高级设置弹窗 */
+    .advanced-modal-overlay { display: none; position: fixed; left:0; top:0; right:0; bottom:0; background: rgba(0,0,0,0.12); z-index: 9999; align-items:center; justify-content:center;}
+    .advanced-modal { background: #fff; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.13); padding: 32px 40px 18px 40px; min-width: 300px; max-width: 90vw; position: relative;}
+    .advanced-modal-close { position: absolute; top: 12px; right: 18px; font-size: 22px; color: #aaa; background: none; border: none; cursor: pointer; font-weight: bold;}
+    .advanced-modal label { display:block; margin: 18px 0 0 0; color: #666; font-size: 16px;}
+    .advanced-modal .adv-btn-row { text-align:right; margin-top:18px;}
+    .advanced-modal .adv-btn { font-size: 16px; border: none; border-radius: 8px; padding: 8px 22px; cursor: pointer; background: #cfd8c2; color: #fff; transition: background 0.2s; margin-left: 8px;}
+    .advanced-modal .adv-btn:hover { background: #b6c8a8;}
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img src="icon.png" alt="icon">
+    <span>多模态虚假新闻检测</span>
+  </div>
+  <!-- 登录卡片 -->
+  <div class="login-card" id="loginCard">
+    <div class="login-title">欢迎使用!</div>
+    <div class="login-desc">登录你的用户名和密码.</div>
+    <div class="login-error" id="loginError"></div>
+    <form class="login-form" id="loginForm" autocomplete="on">
+      <div>
+        <div class="login-label">Email</div>
+        <input class="login-input" type="email" id="loginEmail" name="email" required autocomplete="username">
+      </div>
+      <div>
+        <div class="login-label">Password</div>
+        <div class="login-input-row">
+          <input class="login-input" type="password" id="loginPassword" name="password" required autocomplete="current-password">
+          <span class="login-eye" id="togglePassword"><i class="fa fa-eye"></i></span>
+        </div>
+      </div>
+      <div class="login-aux-row">
+        <label class="remember-me">
+          <input type="checkbox" id="rememberMe" class="login-checkbox">
+          记住密码
+        </label>
+        <span class="forgot">忘记你的密码?</span>
+      </div>
+      <button type="submit" class="login-btn" id="loginBtn">登陆</button>
+    </form>
+    <div class="login-register-row">
+      没有账号? <span class="register" id="registerBtn">现在注册.</span>
+    </div>
+  </div>
+  <!-- 注册弹窗 -->
+  <div class="register-modal-overlay" id="registerModalOverlay">
+    <div class="register-modal">
+      <button class="register-modal-close" id="closeRegisterModalBtn">&times;</button>
+      <div class="register-modal-title">注册新账号</div>
+      <div class="register-modal-error" id="registerModalError"></div>
+      <div class="register-modal-success" id="registerModalSuccess"></div>
+      <div>
+        <div class="register-modal-label">Email</div>
+        <input class="register-modal-input" id="registerEmail" type="email" placeholder="请输入邮箱" autocomplete="username">
+      </div>
+      <div>
+        <div class="register-modal-label">Password</div>
+        <input class="register-modal-input" id="registerPassword" type="password" placeholder="请输入密码" autocomplete="new-password">
+      </div>
+      <div class="register-modal-btn-row">
+        <button class="register-modal-btn" id="doRegisterBtn">注册</button>
+      </div>
+    </div>
+  </div>
+  <!-- 模型选择卡片 -->
+  <div class="card" id="modelCard" style="display:none;">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div style="width:90px"></div>
+      <div class="title" style="flex:1;text-align:center;margin:0;">选择模型</div>
+      <div>
+        <button id="advancedSettingBtn" style="padding:6px 15px;border-radius:12px;background:#eee;color:#888;border:none;font-size:15px;cursor:pointer;margin-right:10px;">高级设置</button>
+        <button id="logoutBtn1" style="padding:6px 18px;border-radius:16px;background:#eee;color:#888;border:none;font-size:15px;cursor:pointer;">退出账号</button>
+      </div>
+    </div>
+    <div class="models">
+      <div class="model">HMCAN</div>
+      <div class="model">EANN</div>
+      <div class="model">MDFEND</div>
+      <div class="model">TrustRD</div>
+      <div class="model">ENDEF</div>
+      <div class="model" id="addModelBtn">add model</div>
+    </div>
+    <div class="pagination">
+      <span class="dot"></span>
+      <span class="dot active"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+    </div>
+    <div class="navigation">
+      <button class="back" id="modelBackBtn">← 返回</button>
+      <button class="continue" id="continueBtn" disabled>继续 →</button>
+    </div>
+  </div>
+  <!-- Add Model Modal -->
+  <div class="modal-overlay" id="addModelModalOverlay" style="display:none;">
+    <div class="modal" style="min-width:320px;max-width:95vw;">
+      <button class="modal-close" id="closeAddModelModalBtn">&times;</button>
+      <div class="modal-header">
+        <span>上传自定义模型文件</span>
+      </div>
+      <div class="modal-content">
+        <div style="margin-bottom:12px;">请选择一个 <b>.py</b> 格式的模型文件：</div>
+        <input type="file" id="addModelFileInput" accept=".py" />
+        <div id="addModelFileError" style="color:#d9534f;font-size:15px;margin-top:8px;min-height:20px;"></div>
+      </div>
+      <div class="modal-actions">
+        <button id="addModelUploadBtn" disabled>确认</button>
+      </div>
+    </div>
+  </div>
+  <!-- 链接输入卡片 -->
+  <div class="input-card" id="inputCard">
+    <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+      <div class="input-title">
+        <img src="icon.png" alt="icon">
+        <span>多模态虚假新闻检测</span>
+      </div>
+      <button id="logoutBtn2" style="padding:6px 18px;border-radius:16px;background:#eee;color:#888;border:none;font-size:15px;cursor:pointer;">退出账号</button>
+    </div>
+    <div class="input-label">输入链接</div>
+    <textarea class="input-textarea" id="inputUri" rows="5"></textarea>
+    <div class="input-actions">
+      <button class="clear" id="clearBtn">清空键入链接</button>
+      <div class="input-actions-row">
+        <button class="back" id="inputBackBtn">← 返回</button>
+        <button class="continue" id="inputContinueBtn" disabled>继续 →</button>
+      </div>
+    </div>
+    <div class="input-pagination">
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot active"></span>
+      <span class="dot"></span>
+    </div>
+  </div>
+  <!-- 检测结果弹窗 -->
+  <div class="modal-overlay" id="resultModalOverlay">
+    <div class="modal">
+      <button class="modal-close" id="closeModalBtn">&times;</button>
+      <div class="modal-header">
+        <img src="icon.png" alt="icon" style="height:28px;">
+        <span>多模态虚假新闻检测</span>
+      </div>
+      <div class="modal-content">
+        <div><label>模型名称：</label><span id="modalModel"></span></div>
+        <div><label>新闻链接：</label><span id="modalUrl"></span></div>
+        <div><label>检测结果：</label><span id="modalResult"></span></div>
+      </div>
+      <div class="modal-actions">
+        <button id="saveResultBtn">保存为.xls</button>
+      </div>
+    </div>
+  </div>
+  <!-- 高级设置弹窗 -->
+  <div class="advanced-modal-overlay" id="advancedModalOverlay">
+    <div class="advanced-modal">
+      <button class="advanced-modal-close" id="closeAdvancedModalBtn">&times;</button>
+      <h2 style="margin-bottom: 12px; color: #666;">高级设置</h2>
+      <label><input type="checkbox" id="toggleFloater"> 启用浮窗</label>
+      <label><input type="checkbox" id="toggleSound"> 启用提示音</label>
+      <div class="adv-btn-row">
+        <button class="adv-btn" id="closeAdvancedSaveBtn">保存并关闭</button>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="popup.js"></script>
+</body><script src="xlsx.full.min.js"></script>
+</html>

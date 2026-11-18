@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "多模态虚假新闻检测",
+  "version": "1.0",
+  "description": "检测网页虚假新闻并浮窗提示",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icon.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "floater.html",
+        "floater.js",
+        "floater.css",
+        "icon.png",
+        "sound.mp3",
+        "background.jpg",
+        "account.xls",
+        "xlsx.full.min.js"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  }
+}

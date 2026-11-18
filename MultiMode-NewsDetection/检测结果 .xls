@@ -1,0 +1,8 @@
+<table border="1">
+      <tr><th>模型名称</th><th>新闻链接</th><th>检测结果</th></tr>
+      <tr>
+        <td>EANN</td>
+        <td>https://www.cnblogs.com/johnnyzen/p/17880870.html#_lab2_1_1</td>
+        <td>虚假新闻</td>
+      </tr>
+    </table>

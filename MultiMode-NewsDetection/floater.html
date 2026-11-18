@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>浮窗-虚假新闻检测</title>
+  <link rel="stylesheet" href="floater.css" />
+</head>
+<body>
+  <div id="floater" class="floater">
+    <!-- 静态未触发状态 -->
+    <div id="floater-static" class="floater-static">
+      <img src="icon.png" style="width:44px;height:44px;">
+    </div>
+    <!-- 检测到虚假新闻提示 -->
+    <div id="floater-detect" class="floater-detect" style="display:none;">
+      <img src="icon.png" style="width:32px;height:32px;">
+      <div class="alert-title">检测到疑似虚假内容！</div>
+      <div class="alert-desc">False News Detected!</div>
+      <button id="floater-detail">详情</button>
+    </div>
+    <!-- 右键菜单 -->
+    <div id="floater-menu" class="floater-menu" style="display:none;">
+      <div class="menu-item" id="menu-hide">隐藏</div>
+      <div class="menu-item" id="menu-logout">退出</div>
+      <div class="menu-item" id="menu-mode">模式设置</div>
+      <div class="menu-item" id="menu-advanced">高级设置</div>
+    </div>
+  </div>
+  <!-- 高级设置弹窗（样式和页面内保持一致） -->
+  <div class="advanced-modal-overlay" id="advancedModalOverlay" style="display:none;">
+    <div class="advanced-modal">
+      <button class="advanced-modal-close" id="closeAdvancedModalBtn">&times;</button>
+      <h2 style="margin-bottom: 12px; color: #666;">高级设置</h2>
+      <label><input type="checkbox" id="toggleFloater"> 启用浮窗</label>
+      <label><input type="checkbox" id="toggleSound"> 启用提示音</label>
+      <div class="adv-btn-row">
+        <button class="adv-btn" id="closeAdvancedSaveBtn">保存并关闭</button>
+      </div>
+    </div>
+  </div>
+  <audio id="alert-audio" src="sound.mp3" preload="auto"></audio>
+  <script src="floater.js"></script>
+</body>
+</html>
